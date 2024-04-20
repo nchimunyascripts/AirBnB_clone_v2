@@ -9,32 +9,18 @@ from models.review import Review
 from models.state import State
 from models.user import User
 
-
 class FileStorage:
-    """Represent an abstracted storage engine.
-
-    Attributes:
-        __file_path (str): The name of the file to save objects to.
-        __objects (dict): A dictionary of instantiated objects.
-    """
+    """Represent an abstracted storage engine."""
 
     __file_path = "file.json"
     __objects = {}
 
     def all(self, cls=None):
-        """Return a dictionary of instantiated objects in __objects.
-
-        If a cls is specified, returns a dictionary of objects of that type.
-        Otherwise, returns the __objects dictionary.
-        """
+        """Return a list of objects of one type of class if cls is specified, or all objects if cls is None."""
         if cls is not None:
-            if type(cls) == str:
+            if isinstance(cls, str):
                 cls = eval(cls)
-            cls_dict = {}
-            for k, v in self.__objects.items():
-                if type(v) == cls:
-                    cls_dict[k] = v
-            return cls_dict
+            return {k: v for k, v in self.__objects.items() if isinstance(v, cls)}
         return self.__objects
 
     def new(self, obj):
@@ -59,11 +45,10 @@ class FileStorage:
             pass
 
     def delete(self, obj=None):
-        """Delete a given object from __objects, if it exists."""
-        try:
-            del self.__objects["{}.{}".format(type(obj).__name__, obj.id)]
-        except (AttributeError, KeyError):
-            pass
+        """Delete a given object from __objects if it exists."""
+        if obj is not None:
+            key = "{}.{}".format(type(obj).__name__, obj.id)
+            self.__objects.pop(key, None)
 
     def close(self):
         """Call the reload method."""
